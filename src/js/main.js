@@ -1,4 +1,5 @@
 $(function() {
+  var init = {}
   validation = {
     'img_src': '',
     'possible_responses':[
@@ -60,19 +61,18 @@ $(function() {
   var dragElements = document.getElementsByClassName('drag-drop-token');
   var dropElements = document.getElementsByClassName('drag-drop-target');
   var dragTokenContainerDropableElements = document.getElementsByClassName('container-token');
-  var parentContainerElement = document.getElementsByClassName('dragdrop-question-container');
   for (var i = 0; i < dragElements.length; i++) {
-    initializeTokenEventListnerForTarget(dragElements[i]);
-    initializeTargetToReceiveToken(dragTokenContainerDropableElements[i]);
+    initializeTokenEventListnerForTarget(dragElements[i], init, _);
+    initializeTargetToReceiveToken(dragTokenContainerDropableElements[i], init, _);
   }
   for (var i = 0; i < dropElements.length; i++) {
-    initializeTargetToReceiveToken(dropElements[i]);
+    initializeTargetToReceiveToken(dropElements[i], init, _);
   }
   if (qContainerElement.length) {
-    initializeTargetToReceiveToken(window);
+    initializeTargetToReceiveToken(window, init, _);
   }
 });
-var initializeTokenEventListnerForTarget = function (tokenElement) {
+var initializeTokenEventListnerForTarget = function (tokenElement, learnosityInit, _) {
   tokenElement.setAttribute('draggable', true);
   tokenElement.addEventListener('dragstart', function(e) {
     e.dataTransfer.effectAllowed = 'move';
@@ -89,15 +89,16 @@ var initializeTokenEventListnerForTarget = function (tokenElement) {
   });
   tokenElement.addEventListener('dragend', function(e) {
     if (elementDragged) {
-      this.parentNode.classList.remove('drag-drop-token-container-dragged');
+      if (this.parentNode) {
+        this.parentNode.classList.remove('drag-drop-token-container-dragged');
+      }
       elementDragged.classList.remove('drag-drop-token-dragged');
-      elementDragged.classList.remove('drag-drop-token-hover');
       elementDragged = null;
     }
   });
 };
 
-var initializeTargetToReceiveToken = function (targetElement) {
+var initializeTargetToReceiveToken = function (targetElement, learnosityInit, _) {
   targetElement.addEventListener('dragover', function(e) {
     if (e.preventDefault) {
       e.preventDefault();
@@ -129,7 +130,8 @@ var initializeTargetToReceiveToken = function (targetElement) {
           removeTokenItemId = existingTokenElement[0].dataset.itemid;
           if (removeTokenItemId === tokenItemId) {
             elementDragged.classList.remove('drag-drop-token-dragged');
-            elementDragged.classList.remove('drag-drop-token-hover');
+            // drop the same block - target and token same block
+            // here we don't need to update the user response
             return false;
           }
         }
@@ -151,6 +153,7 @@ var initializeTargetToReceiveToken = function (targetElement) {
           return classname === 'drag-drop-target'
         });
         if (tmp) {
+          updateUserResponse(learnosityInit, 'delete', elementDraggedParentTarget.dataset.itemid, '', _);
           elementDraggedParentTarget.classList.remove('drag-drop-token-dropped');
           if (!this.dataset) {
             removeTokenItemId = elementDragged.dataset.itemid;
@@ -162,16 +165,21 @@ var initializeTargetToReceiveToken = function (targetElement) {
 
     } else {
       if (!this.dataset) {
+        // drop the token from its own container
+        // here we don't need to update the user response
         return false;
       }
       tokenContainerItemId = this.dataset.itemid;
       if (tokenContainerItemId !== tokenItemId) {
+        // token does not allow to share the token container
+        // here we don't need to update the user response
         return false;
       }
       var elementDraggedParent = elementDragged.parentNode;
       if (elementDraggedParent) {
         elementDraggedParent.classList.remove('drag-drop-token-dropped');
         targetItemId = elementDraggedParent.dataset.itemid;
+        updateUserResponse(learnosityInit, 'delete', targetItemId, '', _);
         existingTokenElement = elementDraggedParent.getElementsByClassName('drag-drop-token');
         if (existingTokenElement.length) {
           removeTokenItemId = existingTokenElement[0].dataset.itemid;
@@ -184,23 +192,51 @@ var initializeTargetToReceiveToken = function (targetElement) {
       elementDragged.classList.add('drag-drop-token-dragged');
       cln.classList.remove("drag-drop-token-dragging");
       this.appendChild(cln);
+      // here we will update user response
+      if (removeTokenItemId !== tokenItemId) {
+        updateUserResponse(learnosityInit, 'update', targetItemId, tokenItemId, _);
+      }
       elementDragged.remove();
       elementDragged = null;
-      initializeTokenEventListnerForTarget(cln);
+      initializeTokenEventListnerForTarget(cln, learnosityInit, _);
     }
     if (existingTokenElement && existingTokenElement.length && removeTokenItemId) {
       var findExistingTokenContainer = document.getElementById('container-item-' + removeTokenItemId);
       if (findExistingTokenContainer) {
         var existingToken = existingTokenElement[0].cloneNode(true);
         existingToken.classList.remove('drag-drop-token-dragged');
-        existingToken.classList.remove('drag-drop-token-hover');
         findExistingTokenContainer.appendChild(existingToken);
         existingTokenElement[0].remove();
-        initializeTokenEventListnerForTarget(existingToken);
+        initializeTokenEventListnerForTarget(existingToken, learnosityInit, _);
       }
     }
     return false;
   });
+};
+
+var updateUserResponse = function (learnosityInit, updateMode, targetId, tokenId, _) {
+  if (!learnosityInit) return;
+  var userResponse = learnosityInit.response || [];
+  var tmpTarget = _.find(userResponse, function (a) {
+    return a.target_id === targetId;
+  });
+  if (tmpTarget) {
+    if (updateMode === 'update') {
+      tmpTarget.token_id = tokenId;
+    } else if (updateMode === 'delete') {
+      tmpTarget.token_id = '';
+    }
+
+  } else {
+    if (updateMode === 'update') {
+      userResponse.push({target_id: targetId, token_id: tokenId});
+    }
+  }
+  console.log('userResponse', userResponse);
+  learnosityInit.response = userResponse;
+  if (learnosityInit.events) {
+    learnosityInit.events.trigger('changed', userResponse);
+  }
 };
 
 
