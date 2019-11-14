@@ -36,3 +36,11 @@
 .drag-drop-token-dragged {
   display: none;
 }
+
+.drag-drop-container .lrn_responseIndex {
+  position: initial !important;
+  float: left;
+}
+.drag-drop-container {
+  margin-left: 10px;
+}

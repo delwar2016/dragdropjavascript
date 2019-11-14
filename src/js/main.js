@@ -1,22 +1,330 @@
 $(function() {
-  var init = {}
+  var init = {state: 'review',
+    response: [{target_id: '219572_R1', token_id: 'A'}, {target_id: '219572_R3', token_id: 'B'}]
+  }
   validation = {
     'img_src': '',
-    'possible_responses':[
-      {'item_id': '1', 'item_type': 'label', 'text': 'Product', 'border_color': '#747678', 'background_color': '#ffffff', 'width': 250, 'height': 50, 'x': 200, 'y': 300},
-      {'item_id': '2', 'item_type': 'token', 'text': 'Car', 'border_color': '#747678', 'background_color': '#ffffff', 'width': 250, 'height': 50, 'x': 200, 'y': 360},
-      {'item_id': '3', 'item_type': 'token', 'text': 'Bus', 'border_color': '#747678', 'background_color': '#ffffff', 'width': 250, 'height': 50, 'x': 200, 'y': 420},
-      {'item_id': '4', 'item_type': 'label', 'text': 'Categories', 'border_color': '#747678', 'background_color': '#ffffff', 'width': 250, 'height': 50, 'x': 460, 'y': 300},
-      {'item_id': '5', 'item_type': 'target', 'text': 'small', 'border_color': '#747678', 'background_color': '#f03bff', 'width': 250, 'height': 50, 'x': 460, 'y': 360},
-      {'item_id': '6', 'item_type': 'target', 'text': 'big transport', 'border_color': '#747678', 'background_color': '#f03bff', 'width': 250, 'height': 50, 'x': 460, 'y': 420}
-    ],
+    "possible_responses" : [
+    {
+      "item_type" : "token",
+      "item_id" : "A",
+      "text" : "Builds in previous problems and inefficiences",
+      "border_color" : "#000000",
+      "background_color" : "#FFFFFF",
+      "text_alignment" : "center",
+      "font_size" : "9",
+      "text_color" : "#000000",
+      "width" : 180,
+      "height" : 52,
+      "x" : 10,
+      "y" : 70
+    },
+    {
+      "item_type" : "token",
+      "item_id" : "B",
+      "text" : "Recognises different cost behaviour patterns",
+      "border_color" : "#000000",
+      "background_color" : "#FFFFFF",
+      "text_alignment" : "center",
+      "font_size" : "9",
+      "text_color" : "#000000",
+      "width" : 180,
+      "height" : 52,
+      "x" : 10,
+      "y" : 139
+    },
+    {
+      "item_type" : "token",
+      "item_id" : "C",
+      "text" : "Focuses employees on avoiding wasteful expenditure",
+      "border_color" : "#000000",
+      "background_color" : "#FFFFFF",
+      "text_alignment" : "center",
+      "font_size" : "9",
+      "text_color" : "#000000",
+      "width" : 180,
+      "height" : 52,
+      "x" : 10,
+      "y" : 210
+    },
+    {
+      "item_type" : "token",
+      "item_id" : "D",
+      "text" : "Focuses on controlling the causes of costs",
+      "border_color" : "#000000",
+      "background_color" : "#FFFFFF",
+      "text_alignment" : "center",
+      "font_size" : "9",
+      "text_color" : "#000000",
+      "width" : 180,
+      "height" : 52,
+      "x" : 10,
+      "y" : 280
+    },
+    {
+      "item_type" : "token",
+      "item_id" : "E",
+      "text" : "Always extends the budget one year into the future",
+      "border_color" : "#000000",
+      "background_color" : "#FFFFFF",
+      "text_alignment" : "center",
+      "font_size" : "9",
+      "text_color" : "#000000",
+      "width" : 180,
+      "height" : 52,
+      "x" : 11,
+      "y" : 350
+    },
+    {
+      "item_type" : "token",
+      "item_id" : "F",
+      "text" : "Uses adaptive management processes",
+      "border_color" : "#000000",
+      "background_color" : "#FFFFFF",
+      "text_alignment" : "center",
+      "font_size" : "9",
+      "text_color" : "#000000",
+      "width" : 180,
+      "height" : 52,
+      "x" : 9,
+      "y" : 420
+    },
+    {
+      "item_type" : "target",
+      "item_id" : "219572_R1",
+      "text" : "Target1",
+      "border_color" : "#000000",
+      "background_color" : "#c0c0c0",
+      "text_alignment" : "left",
+      "font_size" : "8",
+      "text_color" : "#c0c0c0",
+      "width" : 180,
+      "height" : 52,
+      "x" : 310,
+      "y" : 70
+    },
+    {
+      "item_type" : "target",
+      "item_id" : "219572_R2",
+      "text" : "Target2",
+      "border_color" : "#000000",
+      "background_color" : "#c0c0c0",
+      "text_alignment" : "left",
+      "font_size" : "8",
+      "text_color" : "#c0c0c0",
+      "width" : 180,
+      "height" : 52,
+      "x" : 310,
+      "y" : 140
+    },
+    {
+      "item_type" : "target",
+      "item_id" : "219572_R3",
+      "text" : "Target3",
+      "border_color" : "#000000",
+      "background_color" : "#c0c0c0",
+      "text_alignment" : "left",
+      "font_size" : "8",
+      "text_color" : "#c0c0c0",
+      "width" : 180,
+      "height" : 52,
+      "x" : 310,
+      "y" : 210
+    },
+    {
+      "item_type" : "target",
+      "item_id" : "219572_R4",
+      "text" : "Target4",
+      "border_color" : "#000000",
+      "background_color" : "#c0c0c0",
+      "text_alignment" : "left",
+      "font_size" : "8",
+      "text_color" : "#c0c0c0",
+      "width" : 180,
+      "height" : 52,
+      "x" : 310,
+      "y" : 280
+    },
+    {
+      "item_type" : "target",
+      "item_id" : "219572_R5",
+      "text" : "Target5",
+      "border_color" : "#000000",
+      "background_color" : "#c0c0c0",
+      "text_alignment" : "left",
+      "font_size" : "8",
+      "text_color" : "#c0c0c0",
+      "width" : 180,
+      "height" : 52,
+      "x" : 310,
+      "y" : 350
+    },
+    {
+      "item_type" : "target",
+      "item_id" : "219572_R6",
+      "text" : "Target6",
+      "border_color" : "#000000",
+      "background_color" : "#c0c0c0",
+      "text_alignment" : "left",
+      "font_size" : "8",
+      "text_color" : "#c0c0c0",
+      "width" : 180,
+      "height" : 52,
+      "x" : 310,
+      "y" : 420
+    },
+    {
+      "item_type" : "label",
+      "item_id" : "add94d2f0d334e7a9cc4b51118ff9d55",
+      "text" : "Statements",
+      "border_color" : "#000000",
+      "background_color" : "#020202",
+      "text_alignment" : "center",
+      "font_size" : "9",
+      "text_color" : "#fbf4f4",
+      "width" : 180,
+      "height" : 52,
+      "x" : 10,
+      "y" : 10
+    },
+    {
+      "item_type" : "label",
+      "item_id" : "5d558d3e14254fdc94c56a28455cf57d",
+      "text" : "Budgeting approach",
+      "border_color" : "#000000",
+      "background_color" : "#040404",
+      "text_alignment" : "center",
+      "font_size" : "9",
+      "text_color" : "#fbf6f6",
+      "width" : 408,
+      "height" : 51,
+      "x" : 310,
+      "y" : 10
+    },
+    {
+      "item_type" : "label",
+      "item_id" : "fb927f565f214e0c9e3029e220cf668e",
+      "text" : "Beyond budgeting",
+      "border_color" : "#000000",
+      "background_color" : "#FFFFFF",
+      "text_alignment" : "center",
+      "font_size" : "9",
+      "text_color" : "#000000",
+      "width" : 200,
+      "height" : 50,
+      "x" : 520,
+      "y" : 70
+    },
+    {
+      "item_type" : "label",
+      "item_id" : "b4ec7562f36f4bd4b14150e11ebec9f4",
+      "text" : "Incremental budgeting",
+      "border_color" : "#000000",
+      "background_color" : "#FFFFFF",
+      "text_alignment" : "center",
+      "font_size" : "9",
+      "text_color" : "#000000",
+      "width" : 200,
+      "height" : 50,
+      "x" : 520,
+      "y" : 140
+    },
+    {
+      "item_type" : "label",
+      "item_id" : "88c3297ea7294b468bf4d9335e88a409",
+      "text" : "Activity-based budgeting",
+      "border_color" : "#000000",
+      "background_color" : "#FFFFFF",
+      "text_alignment" : "center",
+      "font_size" : "9",
+      "text_color" : "#000000",
+      "width" : 200,
+      "height" : 50,
+      "x" : 520,
+      "y" : 210
+    },
+    {
+      "item_type" : "label",
+      "item_id" : "ea2551a48e6d40aca0ec378402b4b00e",
+      "text" : "Rolling budgeting",
+      "border_color" : "#000000",
+      "background_color" : "#FFFFFF",
+      "text_alignment" : "center",
+      "font_size" : "9",
+      "text_color" : "#000000",
+      "width" : 200,
+      "height" : 50,
+      "x" : 520,
+      "y" : 280
+    },
+    {
+      "item_type" : "label",
+      "item_id" : "61b96d68a24e4859b8068df1e0b8fb0f",
+      "text" : "Flexible budgeting",
+      "border_color" : "#000000",
+      "background_color" : "#FFFFFF",
+      "text_alignment" : "center",
+      "font_size" : "9",
+      "text_color" : "#000000",
+      "width" : 200,
+      "height" : 50,
+      "x" : 520,
+      "y" : 350
+    },
+    {
+      "item_type" : "label",
+      "item_id" : "909a0668301a4d77875bb83a9c7f87ce",
+      "text" : "Zero-based budgeting",
+      "border_color" : "#000000",
+      "background_color" : "#FFFFFF",
+      "text_alignment" : "center",
+      "font_size" : "9",
+      "text_color" : "#000000",
+      "width" : 200,
+      "height" : 50,
+      "x" : 520,
+      "y" : 420
+    }
+  ],
     'valid_items': [
-      {target_id: '5', token_id: '2'},
-      {target_id: '6', token_id: '1'}
+      {target_id: '219572_R1', token_ids: ['B']},
+      {target_id: '219572_R3', token_ids: ['A']}
     ]
   };
 
   var qContainerElement = $('.dragdrop-question-container');
+  var parentContainer = $('.drag-drop-container');
+
+  var tokenIndex = 1;
+  var validResponses = _.indexBy(validation.valid_items || [], 'target_id');
+  var userResponses;
+  if (init.state === 'review' && init.response) {
+    if (Array.isArray(init.response)) {
+      userResponses = _.indexBy(init.response || [], 'target_id');
+    }
+  }
+
+  var maxHeight = 0;
+  var maxWidth = 0;
+  _.each(validation.possible_responses, function (possibleResponse) {
+
+    if (possibleResponse.x + possibleResponse.width > maxWidth) {
+      maxWidth = possibleResponse.x + possibleResponse.width;
+    }
+
+    if (possibleResponse.y + possibleResponse.height > maxHeight) {
+      maxHeight = possibleResponse.y + possibleResponse.height;
+    }
+
+    if (possibleResponse.item_type === 'token') {
+      possibleResponse.index = tokenIndex;
+      tokenIndex++;
+    }
+  });
+  maxWidth += 20;
+  maxHeight += 20;
+  parentContainer.css('max-width', maxWidth + 'px');
+  parentContainer.css('max-height', maxHeight + 'px');
 
   _.each(validation.possible_responses, function (possibleResponse) {
     var labelStyle = '';
@@ -28,6 +336,20 @@ $(function() {
     labelStyle += labelStyle ? ';' : '';
     labelStyle += 'background-color:' + possibleResponse.background_color;
     labelStyle += labelStyle ? ';' : '';
+    if (possibleResponse.text_color) {
+      labelStyle += 'color:' + possibleResponse.text_color;
+      labelStyle += labelStyle ? ';' : '';
+    }
+    if (possibleResponse.font_size) {
+      labelStyle += 'font-size:' + possibleResponse.font_size + 'px';
+      labelStyle += labelStyle ? ';' : '';
+    }
+    if (possibleResponse.text_alignment) {
+      labelStyle += 'text-align:' + possibleResponse.text_alignment;
+      labelStyle += labelStyle ? ';' : '';
+    }
+
+
 
     var positionStyle = '';
     positionStyle += positionStyle ? ';' : '';
@@ -44,32 +366,53 @@ $(function() {
     var dataAttributes = '';
     dataAttributes += dataAttributes ? ' ' : '';
     dataAttributes += 'data-itemid="' + possibleResponse.item_id + '"';
+    var reviewTokenDIv = '';
     var responseDiv = '';
     if (possibleResponse.item_type === 'token') {
+      if (init.state === 'review') {
+        reviewTokenDIv += '<span class="lrn_responseIndex">' + possibleResponse.index + '</span>'
+      }
       responseDiv += '<div  ' + dataAttributes + ' id="container-item-' + possibleResponse.item_id + '" class="container-' + possibleResponse.item_type + ' drag-drop-response-element_position" style="' + labelStyle + positionStyle  + '">';
-      responseDiv += '<div  ' + dataAttributes + ' class="item-same-size drag-drop-token-dragged_border ' + additionalClass + '" style="' + labelStyle + '"><span class="span-' + possibleResponse.item_type + '">' + possibleResponse.text + '</span></div>';
+      responseDiv += '<div  ' + dataAttributes + ' class="item-same-size drag-drop-token-dragged_border ' + additionalClass + '" style="' + labelStyle + '">' + reviewTokenDIv + '<span class="span-' + possibleResponse.item_type + '">' + possibleResponse.text + '</span></div>';
       responseDiv += '</div>';
     } else {
-      responseDiv += '<div  ' + dataAttributes + ' class="drag-drop-response-element_position drag-drop-token-dragged_border ' + additionalClass + '" style="' + labelStyle + positionStyle + '"><span class="span-' + possibleResponse.item_type + '">' + possibleResponse.text + '</span></div>';
+      if (possibleResponse.item_type === 'target') {
+        if (init.state === 'review') {
+          var targetValidResponse = validResponses[possibleResponse.item_id];
+          if (targetValidResponse) {
+            _.each(validation.possible_responses, function (vPossibleResponse) {
+              if (_.indexOf(targetValidResponse.token_ids, vPossibleResponse.item_id) !== -1) {
+                reviewTokenDIv += '<span class="lrn_responseIndex">' + vPossibleResponse.index + '</span>'
+              }
+            });
+          }
+        }
+      }
+      if (possibleResponse.item_type === 'target') {
+        responseDiv += '<div  ' + dataAttributes + ' class="drag-drop-response-element_position drag-drop-token-dragged_border ' + additionalClass + '" style="' + labelStyle + positionStyle + '">' + reviewTokenDIv + '<span class="span-' + possibleResponse.item_type + '">' + (init.state === 'review' ? possibleResponse.text : '') + '</span></div>';
+      } else {
+        responseDiv += '<div  ' + dataAttributes + ' class="drag-drop-response-element_position drag-drop-token-dragged_border ' + additionalClass + '" style="' + labelStyle + positionStyle + '">' + reviewTokenDIv + '<span class="span-' + possibleResponse.item_type + '">' + possibleResponse.text + '</span></div>';
+      }
     }
     qContainerElement.append(responseDiv);
   });
 
-  var allowDuplicateToken = false;
-  window.elementDragged = null;
-  window.userResponses = {};
-  var dragElements = document.getElementsByClassName('drag-drop-token');
-  var dropElements = document.getElementsByClassName('drag-drop-target');
-  var dragTokenContainerDropableElements = document.getElementsByClassName('container-token');
-  for (var i = 0; i < dragElements.length; i++) {
-    initializeTokenEventListnerForTarget(dragElements[i], init, _);
-    initializeTargetToReceiveToken(dragTokenContainerDropableElements[i], init, _);
-  }
-  for (var i = 0; i < dropElements.length; i++) {
-    initializeTargetToReceiveToken(dropElements[i], init, _);
-  }
-  if (qContainerElement.length) {
-    initializeTargetToReceiveToken(window, init, _);
+  if (init.state === 'resume') {
+    window.elementDragged = null;
+    window.userResponses = {};
+    var dragElements = document.getElementsByClassName('drag-drop-token');
+    var dropElements = document.getElementsByClassName('drag-drop-target');
+    var dragTokenContainerDropableElements = document.getElementsByClassName('container-token');
+    for (var i = 0; i < dragElements.length; i++) {
+      initializeTokenEventListnerForTarget(dragElements[i], init, _);
+      initializeTargetToReceiveToken(dragTokenContainerDropableElements[i], init, _);
+    }
+    for (var i = 0; i < dropElements.length; i++) {
+      initializeTargetToReceiveToken(dropElements[i], init, _);
+    }
+    if (qContainerElement.length) {
+      initializeTargetToReceiveToken(window, init, _);
+    }
   }
 });
 var initializeTokenEventListnerForTarget = function (tokenElement, learnosityInit, _) {
@@ -232,7 +575,6 @@ var updateUserResponse = function (learnosityInit, updateMode, targetId, tokenId
       userResponse.push({target_id: targetId, token_id: tokenId});
     }
   }
-  console.log('userResponse', userResponse);
   learnosityInit.response = userResponse;
   if (learnosityInit.events) {
     learnosityInit.events.trigger('changed', userResponse);
