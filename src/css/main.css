@@ -1,0 +1,38 @@
+#display-container {
+  overflow: auto;
+}
+
+.drag-drop-response-element_position {
+  position: absolute;
+}
+.drag-drop-response-element .item-same-size {
+  width: 100%;
+  height: 100%;
+}
+
+.drag-drop-target .drag-drop-token {
+  position: initial;
+}
+
+.drag-drop-token {
+  z-index: 200;
+}
+.drag-drop-token-dropped {
+  border-style: none !important;
+}
+.drag-drop-token-dropped .span-target{
+  display: none;
+}
+
+.drag-drop-token-container-dragged {
+  border-style: none;
+  background-color: transparent;
+}
+.drag-drop-token-dragged_border {
+  border-style: solid;
+}
+
+
+.drag-drop-token-dragged {
+  display: none;
+}
