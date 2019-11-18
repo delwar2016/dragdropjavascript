@@ -1,5 +1,5 @@
 $(function() {
-  var init = {state: 'review',
+  var init = {state: 'resume',
     response: [{target_id: '219572_R1', token_id: 'A'}, {target_id: '219572_R3', token_id: 'B'}]
   }
   validation = {
@@ -17,7 +17,8 @@ $(function() {
       "width" : 180,
       "height" : 52,
       "x" : 10,
-      "y" : 70
+      "y" : 70,
+      "multiple_use": true
     },
     {
       "item_type" : "token",
@@ -31,7 +32,8 @@ $(function() {
       "width" : 180,
       "height" : 52,
       "x" : 10,
-      "y" : 139
+      "y" : 139,
+      "multiple_use": true
     },
     {
       "item_type" : "token",
@@ -291,21 +293,24 @@ $(function() {
       {target_id: '219572_R3', token_ids: ['A']}
     ]
   };
-
+  var maxHeight = 800;
+  var maxWidth = 900;
   var qContainerElement = $('.dragdrop-question-container');
   var parentContainer = $('.drag-drop-container');
-
+  var qContainer = $('.dragdrop-question-container');
   var tokenIndex = 1;
-  var validResponses = _.indexBy(validation.valid_items || [], 'target_id');
-  var userResponses;
+  var filterValidItems = _.filter(validation.valid_items, function (validItem) {
+    return validItem.token_ids.length;
+  });
+  var validResponses = _.indexBy(filterValidItems || [], 'target_id');
+  var userResponses = init.response;
   if (init.state === 'review' && init.response) {
     if (Array.isArray(init.response)) {
       userResponses = _.indexBy(init.response || [], 'target_id');
     }
   }
 
-  var maxHeight = 0;
-  var maxWidth = 0;
+
   _.each(validation.possible_responses, function (possibleResponse) {
 
     if (possibleResponse.x + possibleResponse.width > maxWidth) {
@@ -321,12 +326,11 @@ $(function() {
       tokenIndex++;
     }
   });
-  maxWidth += 20;
-  maxHeight += 20;
-  parentContainer.css('max-width', maxWidth + 'px');
-  parentContainer.css('max-height', maxHeight + 'px');
-
-  _.each(validation.possible_responses, function (possibleResponse) {
+  parentContainer.css('width', maxWidth + 40 + 'px');
+  parentContainer.css('height', maxHeight + 40 + 'px');
+  qContainer.css('width', maxWidth + 'px');
+  qContainer.css('height', maxHeight + 'px');
+  var getTokenStyle = function (possibleResponse) {
     var labelStyle = '';
     labelStyle += 'width:' + possibleResponse.width + 'px';
     labelStyle += labelStyle ? ';' : '';
@@ -347,10 +351,16 @@ $(function() {
     if (possibleResponse.text_alignment) {
       labelStyle += 'text-align:' + possibleResponse.text_alignment;
       labelStyle += labelStyle ? ';' : '';
+    } else {
+      labelStyle += 'text-align:' + 'center';
+      labelStyle += labelStyle ? ';' : '';
     }
+    return labelStyle;
+  }
 
+  _.each(validation.possible_responses, function (possibleResponse) {
 
-
+    var labelStyle = getTokenStyle(possibleResponse);
     var positionStyle = '';
     positionStyle += positionStyle ? ';' : '';
     positionStyle += 'top:' + possibleResponse.y + 'px';
@@ -366,30 +376,77 @@ $(function() {
     var dataAttributes = '';
     dataAttributes += dataAttributes ? ' ' : '';
     dataAttributes += 'data-itemid="' + possibleResponse.item_id + '"';
+
+    dataAttributes += dataAttributes ? ' ' : '';
+    dataAttributes += 'data-multipleuse="' + !!possibleResponse.multiple_use + '"';
+
     var reviewTokenDIv = '';
     var responseDiv = '';
     if (possibleResponse.item_type === 'token') {
+      var showToken = true;
       if (init.state === 'review') {
         reviewTokenDIv += '<span class="lrn_responseIndex">' + possibleResponse.index + '</span>'
+
+        if (userResponses && typeof userResponses === 'object' && !possibleResponse.multiple_use) {
+          var findUsedToken = _.find(userResponses, function (userResponse) {
+            return userResponse.token_id === possibleResponse.item_id;
+          });
+          if (findUsedToken) {
+            showToken = false;
+          }
+        }
       }
       responseDiv += '<div  ' + dataAttributes + ' id="container-item-' + possibleResponse.item_id + '" class="container-' + possibleResponse.item_type + ' drag-drop-response-element_position" style="' + labelStyle + positionStyle  + '">';
-      responseDiv += '<div  ' + dataAttributes + ' class="item-same-size drag-drop-token-dragged_border ' + additionalClass + '" style="' + labelStyle + '">' + reviewTokenDIv + '<span class="span-' + possibleResponse.item_type + '">' + possibleResponse.text + '</span></div>';
+      if (showToken) {
+        responseDiv += '<div  ' + dataAttributes + ' class="item-same-size drag-drop-token-dragged_border ' + additionalClass + '" style="' + labelStyle + '">' + reviewTokenDIv + '<span class="span-' + possibleResponse.item_type + '">' + possibleResponse.text + '</span></div>';
+      } else {
+        responseDiv += reviewTokenDIv
+      }
       responseDiv += '</div>';
-    } else {
+    } else if (possibleResponse.item_type === 'target' || possibleResponse.item_type === 'label') {
       if (possibleResponse.item_type === 'target') {
         if (init.state === 'review') {
+          var hasToken = false;
           var targetValidResponse = validResponses[possibleResponse.item_id];
           if (targetValidResponse) {
+            hasToken = !!targetValidResponse.token_ids.length;
             _.each(validation.possible_responses, function (vPossibleResponse) {
               if (_.indexOf(targetValidResponse.token_ids, vPossibleResponse.item_id) !== -1) {
                 reviewTokenDIv += '<span class="lrn_responseIndex">' + vPossibleResponse.index + '</span>'
               }
             });
           }
+          var userResponseFeedbackClass = '';
+          if (hasToken) {
+            userResponseFeedbackClass = 'inCorrectWithUserResponseClass';
+          }
+
+          if (userResponses && typeof userResponses === 'object') {
+            userResponseFeedbackClass = 'inCorrectWithUserResponseClass';
+            if (userResponses[possibleResponse.item_id]) {
+              var findUserResponseToken = _.find(validation.possible_responses, function (pr) {
+                return pr.item_id === userResponses[possibleResponse.item_id].token_id;
+              });
+              if (findUserResponseToken) {
+                if (hasToken && _.indexOf(targetValidResponse.token_ids, findUserResponseToken.item_id) !== -1) {
+                  userResponseFeedbackClass = 'correctWithUserResponseClass';
+                }
+                var userResponseStyle = getTokenStyle(findUserResponseToken);
+                var userResponseAdditionalClass = '';
+                userResponseAdditionalClass += userResponseAdditionalClass ? ' ' : '';
+                userResponseAdditionalClass += 'drag-drop-' + findUserResponseToken.item_type;
+                userResponseAdditionalClass += userResponseAdditionalClass ? ' ' : '';
+
+                additionalClass += userResponseFeedbackClass;
+                additionalClass += additionalClass ? ' ' : '';
+                reviewTokenDIv += '<div  class="item-same-size ' + userResponseAdditionalClass + '" style="' + userResponseStyle + '"><span class="span-' + findUserResponseToken.item_type + '">' + findUserResponseToken.text + '</span></div>';
+              }
+            }
+          }
         }
       }
       if (possibleResponse.item_type === 'target') {
-        responseDiv += '<div  ' + dataAttributes + ' class="drag-drop-response-element_position drag-drop-token-dragged_border ' + additionalClass + '" style="' + labelStyle + positionStyle + '">' + reviewTokenDIv + '<span class="span-' + possibleResponse.item_type + '">' + (init.state === 'review' ? possibleResponse.text : '') + '</span></div>';
+        responseDiv += '<div  ' + dataAttributes + ' class="container-target drag-drop-response-element_position drag-drop-token-dragged_border ' + additionalClass + '" style="' + labelStyle + positionStyle + '">' + reviewTokenDIv + '<span class="span-' + possibleResponse.item_type + '">' + (init.state === 'review' && !userResponses ? possibleResponse.text : '') + '</span></div>';
       } else {
         responseDiv += '<div  ' + dataAttributes + ' class="drag-drop-response-element_position drag-drop-token-dragged_border ' + additionalClass + '" style="' + labelStyle + positionStyle + '">' + reviewTokenDIv + '<span class="span-' + possibleResponse.item_type + '">' + possibleResponse.text + '</span></div>';
       }
@@ -399,7 +456,6 @@ $(function() {
 
   if (init.state === 'resume') {
     window.elementDragged = null;
-    window.userResponses = {};
     var dragElements = document.getElementsByClassName('drag-drop-token');
     var dropElements = document.getElementsByClassName('drag-drop-target');
     var dragTokenContainerDropableElements = document.getElementsByClassName('container-token');
@@ -421,14 +477,17 @@ var initializeTokenEventListnerForTarget = function (tokenElement, learnosityIni
     e.dataTransfer.effectAllowed = 'move';
     this.parentNode.classList.add('drag-drop-token-container-dragged');
     elementDragged = this;
-    setTimeout(function () {
-      var tmp = _.find(elementDragged.classList, function (classname) {
-        return classname === 'drag-drop-token-dragged'
+    var isMultipleUse = elementDragged.dataset.multipleuse && elementDragged.dataset.multipleuse === 'true';
+    if (!isMultipleUse) {
+      setTimeout(function () {
+        var tmp = _.find(elementDragged.classList, function (classname) {
+          return classname === 'drag-drop-token-dragged'
+        });
+        if (!tmp) {
+          elementDragged.classList.add('drag-drop-token-dragged');
+        }
       });
-      if (!tmp) {
-        elementDragged.classList.add('drag-drop-token-dragged');
-      }
-    });
+    }
   });
   tokenElement.addEventListener('dragend', function(e) {
     if (elementDragged) {
@@ -453,107 +512,262 @@ var initializeTargetToReceiveToken = function (targetElement, learnosityInit, _)
   targetElement.addEventListener('drop', function(e) {
     if (e.preventDefault || !elementDragged) e.preventDefault();
     if (e.stopPropagation) e.stopPropagation();
-    var isTargetDrop = true;
-    var tmp;
-    tmp = _.find(this.classList, function (classname) {
-      return classname === 'container-token'
-    });
-    var tokenItemId;
-    var targetItemId;
-    var removeTokenItemId;
+
+    //1 token to target
+    //2 token to token
+    //3 target to token
+    //4 target to target
+    //5 target to window
+    //6 token to window
+    var isSourceContainer1;
+    var isDestinationContainer1;
+    var isSourceContainer2;
+    var isDestinationContainer2;
+    var isSourceContainer3;
+    var isDestinationContainer3;
+    var isSourceContainer4;
+    var isDestinationContainer4;
     var existingTokenElement;
-    var tokenContainerItemId;
-    isTargetDrop = !!!tmp;
-    tokenItemId = elementDragged.dataset.itemid;
-    if (isTargetDrop) {
-      if (this.dataset) {
-        targetItemId = this.dataset.itemid;
-        existingTokenElement = this.getElementsByClassName('drag-drop-token');
-        if (existingTokenElement.length) {
-          removeTokenItemId = existingTokenElement[0].dataset.itemid;
-          if (removeTokenItemId === tokenItemId) {
-            elementDragged.classList.remove('drag-drop-token-dragged');
-            // drop the same block - target and token same block
-            // here we don't need to update the user response
-            return false;
-          }
-        }
+    var cln;
+    var findExistingTokenContainer;
+    var sourceParentTarget;
 
-        tmp = _.find(this.classList, function (classname) {
-          return classname === 'drag-drop-token-dropped'
-        });
-        if (!tmp) {
-          this.classList.add('drag-drop-token-dropped');
-        }
-        existingTokenElement = this.getElementsByClassName('drag-drop-token');
-        if (existingTokenElement.length) {
-          removeTokenItemId = existingTokenElement[0].dataset.itemid;
-        }
-      }
-      var elementDraggedParentTarget = elementDragged.parentNode;
-      if (elementDraggedParentTarget) {
-        tmp = _.find(elementDraggedParentTarget.classList, function (classname) {
-          return classname === 'drag-drop-target'
-        });
-        if (tmp) {
-          updateUserResponse(learnosityInit, 'delete', elementDraggedParentTarget.dataset.itemid, '', _);
-          elementDraggedParentTarget.classList.remove('drag-drop-token-dropped');
-          if (!this.dataset) {
-            removeTokenItemId = elementDragged.dataset.itemid;
-            existingTokenElement = [];
-            existingTokenElement[0] = elementDragged;
-          }
-        }
-      }
-
-    } else {
-      if (!this.dataset) {
-        // drop the token from its own container
-        // here we don't need to update the user response
-        return false;
-      }
-      tokenContainerItemId = this.dataset.itemid;
-      if (tokenContainerItemId !== tokenItemId) {
-        // token does not allow to share the token container
-        // here we don't need to update the user response
-        return false;
-      }
-      var elementDraggedParent = elementDragged.parentNode;
-      if (elementDraggedParent) {
-        elementDraggedParent.classList.remove('drag-drop-token-dropped');
-        targetItemId = elementDraggedParent.dataset.itemid;
-        updateUserResponse(learnosityInit, 'delete', targetItemId, '', _);
-        existingTokenElement = elementDraggedParent.getElementsByClassName('drag-drop-token');
-        if (existingTokenElement.length) {
-          removeTokenItemId = existingTokenElement[0].dataset.itemid;
-        }
-      }
+    //1. token to target
+    if (elementDragged.parentNode) {
+      isSourceContainer1 = _.find(elementDragged.parentNode.classList, function (c) {
+        return c === 'container-token';
+      });
     }
-    if (this.dataset) {
-      var cln = elementDragged.cloneNode(true);
-      cln.classList.remove('drag-drop-token-dragged');
-      elementDragged.classList.add('drag-drop-token-dragged');
-      cln.classList.remove("drag-drop-token-dragging");
-      this.appendChild(cln);
-      // here we will update user response
-      if (removeTokenItemId !== tokenItemId) {
-        updateUserResponse(learnosityInit, 'update', targetItemId, tokenItemId, _);
+
+
+    if (this.classList) {
+      isDestinationContainer1 = _.find(this.classList, function (c) {
+        return c === 'container-target';
+      });
+    }
+
+    //2. token to token
+    if (elementDragged.parentNode) {
+      isSourceContainer2 = _.find(elementDragged.parentNode.classList, function (c) {
+        return c === 'container-token';
+      });
+    }
+
+    if (this.classList) {
+      isDestinationContainer2 = _.find(this.classList, function (c) {
+        return c === 'container-token';
+      });
+    }
+    //3. target to token
+    if (elementDragged.parentNode) {
+      isSourceContainer3 = _.find(elementDragged.parentNode.classList, function (c) {
+        return c === 'container-target';
+      });
+    }
+    if (this.classList) {
+      isDestinationContainer3 = _.find(this.classList, function (c) {
+        return c === 'container-token';
+      });
+    }
+
+    //4. target to target
+    if (elementDragged.parentNode) {
+      isSourceContainer4 = _.find(elementDragged.parentNode.classList, function (c) {
+        return c === 'container-target';
+      });
+    }
+    if (this.classList) {
+      isDestinationContainer4 = _.find(this.classList, function (c) {
+        return c === 'container-target';
+      });
+    }
+    //1 token to target
+    //2 token to token
+    //3 target to token
+    //4 target to target
+    //5 target to window
+    //6 token to window
+    if (isSourceContainer1 && isDestinationContainer1) {
+      console.log('token to target');
+      existingTokenElement = this.getElementsByClassName('drag-drop-token');
+      if (existingTokenElement.length) {
+        // if the target has already token
+
+        // do nothing - both are same token
+        if (existingTokenElement[0].dataset.itemid === elementDragged.dataset.itemid) {
+          return false;
+        } else {
+
+          // token are not same - we place token to its original container
+
+
+
+          // remove multiple use token and append drag token to target container
+          if (existingTokenElement[0].dataset.multipleuse && existingTokenElement[0].dataset.multipleuse === 'true') {
+            existingTokenElement[0].remove();
+            cln = elementDragged.cloneNode(true);
+            cln.classList.remove('drag-drop-token-dragged');
+            cln.classList.remove("drag-drop-token-dragging");
+            this.appendChild(cln);
+            this.classList.add('drag-drop-token-dropped');
+            initializeTokenEventListnerForTarget(cln, learnosityInit, _);
+            updateUserResponse(learnosityInit, 'update', this.dataset.itemid, elementDragged.dataset.itemid, _);
+            if (elementDragged.dataset.multipleuse && elementDragged.dataset.multipleuse === 'true') {
+              elementDragged.classList.remove('drag-drop-token-dragged');
+            } else {
+              elementDragged.classList.add('drag-drop-token-dragged');
+              elementDragged.remove();
+            }
+          } else {
+            // move single use token to its original container and place the new token to target
+            findExistingTokenContainer = document.getElementById('container-item-' + existingTokenElement[0].dataset.itemid);
+            if (findExistingTokenContainer) {
+              var existingToken = existingTokenElement[0].cloneNode(true);
+              existingToken.classList.remove('drag-drop-token-dragged');
+              existingTokenElement[0].remove();
+              findExistingTokenContainer.appendChild(existingToken);
+              initializeTokenEventListnerForTarget(existingToken, learnosityInit, _);
+            }
+            cln = elementDragged.cloneNode(true);
+            cln.classList.remove('drag-drop-token-dragged');
+            cln.classList.remove("drag-drop-token-dragging");
+            this.appendChild(cln);
+            this.classList.add('drag-drop-token-dropped');
+            initializeTokenEventListnerForTarget(cln, learnosityInit, _);
+            updateUserResponse(learnosityInit, 'update', this.dataset.itemid, elementDragged.dataset.itemid, _);
+            if (elementDragged.dataset.multipleuse && elementDragged.dataset.multipleuse === 'true') {
+              elementDragged.classList.remove('drag-drop-token-dragged');
+            } else {
+              elementDragged.classList.add('drag-drop-token-dragged');
+              elementDragged.remove();
+            }
+          }
+        }
+      } else {
+        // target does not have token
+        cln = elementDragged.cloneNode(true);
+        cln.classList.remove('drag-drop-token-dragged');
+        cln.classList.remove("drag-drop-token-dragging");
+        this.appendChild(cln);
+        this.classList.add('drag-drop-token-dropped');
+        initializeTokenEventListnerForTarget(cln, learnosityInit, _);
+        updateUserResponse(learnosityInit, 'update', this.dataset.itemid, elementDragged.dataset.itemid, _);
+        if (elementDragged.dataset.multipleuse && elementDragged.dataset.multipleuse === 'true') {
+          elementDragged.classList.remove('drag-drop-token-dragged');
+        } else {
+          elementDragged.classList.add('drag-drop-token-dragged');
+          elementDragged.remove();
+        }
+      }
+
+    } else if (isSourceContainer2 && isDestinationContainer2) {
+      console.log('token to token');
+      // here we don't do anythings here
+    } else if (isSourceContainer3 && isDestinationContainer3) {
+      console.log('target to token');
+      var targetParent = elementDragged.parentNode;
+      if (elementDragged.dataset.multipleuse && elementDragged.dataset.multipleuse === 'true') {
+        // we don't append back to original container
+      } else {
+
+        // we append back to original container
+
+        findExistingTokenContainer = document.getElementById('container-item-' + elementDragged.dataset.itemid);
+        if (findExistingTokenContainer) {
+          var existingToken = elementDragged.cloneNode(true);
+          existingToken.classList.remove('drag-drop-token-dragged');
+          findExistingTokenContainer.appendChild(existingToken);
+          initializeTokenEventListnerForTarget(existingToken, learnosityInit, _);
+        }
+
       }
       elementDragged.remove();
-      elementDragged = null;
-      initializeTokenEventListnerForTarget(cln, learnosityInit, _);
-    }
-    if (existingTokenElement && existingTokenElement.length && removeTokenItemId) {
-      var findExistingTokenContainer = document.getElementById('container-item-' + removeTokenItemId);
-      if (findExistingTokenContainer) {
-        var existingToken = existingTokenElement[0].cloneNode(true);
-        existingToken.classList.remove('drag-drop-token-dragged');
-        findExistingTokenContainer.appendChild(existingToken);
-        existingTokenElement[0].remove();
-        initializeTokenEventListnerForTarget(existingToken, learnosityInit, _);
+      targetParent.classList.remove('drag-drop-token-dropped');
+      targetParent.classList.remove('drag-drop-token-container-dragged');
+      updateUserResponse(learnosityInit, 'delete', targetParent.dataset.itemid, '', _);
+    } else  if (isSourceContainer4 && isDestinationContainer4) {
+      console.log('target to target');
+
+      existingTokenElement = this.getElementsByClassName('drag-drop-token');
+      if (existingTokenElement.length) {
+
+        // target have any token
+
+
+        // source target token and destination target token are same
+        if (existingTokenElement[0].dataset.itemid === elementDragged.dataset.itemid) {
+          return false;
+        } else {
+
+          // source target token and destination target token don't same
+          if (existingTokenElement[0].dataset.multipleuse && existingTokenElement[0].dataset.multipleuse === 'true') {
+            existingTokenElement[0].remove();
+          } else {
+            findExistingTokenContainer = document.getElementById('container-item-' + existingTokenElement[0].dataset.itemid);
+            if (findExistingTokenContainer) {
+              var existingToken = existingTokenElement[0].cloneNode(true);
+              existingToken.classList.remove('drag-drop-token-dragged');
+              findExistingTokenContainer.appendChild(existingToken);
+              initializeTokenEventListnerForTarget(existingToken, learnosityInit, _);
+              existingTokenElement[0].remove();
+            }
+          }
+          sourceParentTarget = elementDragged.parentNode;
+          // target does not have any token
+          cln = elementDragged.cloneNode(true);
+          cln.classList.remove('drag-drop-token-dragged');
+          cln.classList.remove("drag-drop-token-dragging");
+          this.appendChild(cln);
+          this.classList.add('drag-drop-token-dropped');
+          initializeTokenEventListnerForTarget(cln, learnosityInit, _);
+          updateUserResponse(learnosityInit, 'update', this.dataset.itemid, elementDragged.dataset.itemid, _);
+          sourceParentTarget.classList.remove('drag-drop-token-dropped');
+          sourceParentTarget.classList.remove('drag-drop-token-container-dragged');
+          elementDragged.remove();
+
+        }
+      } else {
+        // target does not have any token
+        sourceParentTarget = elementDragged.parentNode;
+        cln = elementDragged.cloneNode(true);
+        cln.classList.remove('drag-drop-token-dragged');
+        cln.classList.remove("drag-drop-token-dragging");
+        this.appendChild(cln);
+        this.classList.add('drag-drop-token-dropped');
+        initializeTokenEventListnerForTarget(cln, learnosityInit, _);
+        updateUserResponse(learnosityInit, 'update', this.dataset.itemid, elementDragged.dataset.itemid, _);
+        sourceParentTarget.classList.remove('drag-drop-token-dropped');
+        sourceParentTarget.classList.remove('drag-drop-token-container-dragged');
+        elementDragged.remove();
       }
+
+    } else if (isSourceContainer1 || isSourceContainer2 ) {
+      console.log('token to window');
+      // do nothings here
+    } else if (isSourceContainer3 || isSourceContainer4 ) {
+      console.log('target to window');
+
+      var targetParent = elementDragged.parentNode;
+      if (elementDragged.dataset.multipleuse && elementDragged.dataset.multipleuse === 'true') {
+        // we don't append back to original container
+      } else {
+
+        // we append back to original container
+
+        findExistingTokenContainer = document.getElementById('container-item-' + elementDragged.dataset.itemid);
+        if (findExistingTokenContainer) {
+          var existingToken = elementDragged.cloneNode(true);
+          existingToken.classList.remove('drag-drop-token-dragged');
+          findExistingTokenContainer.appendChild(existingToken);
+          initializeTokenEventListnerForTarget(existingToken, learnosityInit, _);
+        }
+
+      }
+      elementDragged.remove();
+      targetParent.classList.remove('drag-drop-token-dropped');
+      targetParent.classList.remove('drag-drop-token-container-dragged');
+      updateUserResponse(learnosityInit, 'delete', targetParent.dataset.itemid, '', _);
     }
-    return false;
   });
 };
 
@@ -580,6 +794,8 @@ var updateUserResponse = function (learnosityInit, updateMode, targetId, tokenId
     learnosityInit.events.trigger('changed', userResponse);
   }
 };
+
+
 
 
 
